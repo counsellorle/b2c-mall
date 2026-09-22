@@ -1,0 +1,270 @@
+### ==================== 注册 ====================
+
+### 注册新用户
+POST http://localhost:8082/employee/register
+Content-Type: application/json
+
+{
+  "shopName": "testShop",
+  "username": "shop01",
+  "password": "123456"
+}
+
+### 注册重复账号（测试异常）
+POST http://localhost:8082/employee/register
+Content-Type: application/json
+
+{
+  "shopName": "testShop",
+  "username": "shop01",
+  "password": "123456"
+}
+
+### ==================== 登录 ====================
+
+### 登录成功
+POST http://localhost:8082/employee/login
+Content-Type: application/json
+
+{
+  "username": "shop01",
+  "password": "123456"
+}
+
+### 登录失败 - 密码错误
+POST http://localhost:8082/employee/login
+Content-Type: application/json
+
+{
+  "username": "shop01",
+  "password": "wrong"
+}
+
+### 登录失败 - 账号不存在
+POST http://localhost:8082/employee/login
+Content-Type: application/json
+
+{
+  "username": "notexist",
+  "password": "123456"
+}
+
+### ==================== Dashboard ====================
+
+### 订单统计摘要
+GET http://localhost:8082/dashboard/summary
+
+### 趋势数据
+GET http://localhost:8082/dashboard/trend
+
+### 消息通知列表
+GET http://localhost:8082/dashboard/messages
+### ==================== 商品发布（模板方法模式）====================
+
+### 发布实物商品（应成功）
+POST http://localhost:8082/product/publish?shopId=1
+Content-Type: application/json
+
+{
+  "name": "iPhone 15",
+  "keyword": "苹果 手机",
+  "sellingPoint": "最新款苹果手机",
+  "categoryId": 2,
+  "productType": "physical",
+  "mainImage": "/images/iphone15.jpg",
+  "brand": "Apple",
+  "price": 6999.00,
+  "marketPrice": 7999.00,
+  "stock": 100,
+  "stockWarn": 10,
+  "productCode": "APL-IP15-001",
+  "sort": 1
+}
+
+### 发布实物商品 - 库存为0（应失败）
+POST http://localhost:8082/product/publish?shopId=1
+Content-Type: application/json
+
+{
+  "name": "iPhone 15 无货",
+  "categoryId": 2,
+  "productType": "physical",
+  "price": 6999.00,
+  "stock": 0
+}
+
+### 发布虚拟商品（应成功）
+POST http://localhost:8082/product/publish?shopId=1
+Content-Type: application/json
+
+{
+  "name": "100元话费充值卡",
+  "keyword": "话费 充值",
+  "categoryId": 5,
+  "productType": "virtual",
+  "price": 95.00,
+  "marketPrice": 100.00,
+  "stock": 500,
+  "complianceInfo": "有效期至2027-12-31，工信部备案号：XXXXX"
+}
+
+### 发布虚拟商品 - 无合规信息（应失败）
+POST http://localhost:8082/product/publish?shopId=1
+Content-Type: application/json
+
+{
+  "name": "无合规虚拟商品",
+  "categoryId": 5,
+  "productType": "virtual",
+  "price": 50.00,
+  "stock": 100
+}
+
+### 发布电子卡券（走虚拟逻辑，需要合规信息）
+POST http://localhost:8082/product/publish?shopId=1
+Content-Type: application/json
+
+{
+  "name": "星巴克50元代金券",
+  "categoryId": 5,
+  "productType": "card",
+  "price": 45.00,
+  "marketPrice": 50.00,
+  "stock": 200,
+  "complianceInfo": "有效期30天，不记名不挂失"
+}
+
+### ==================== 订单管理（状态机）====================
+
+### 订单列表
+GET http://localhost:8082/order/list
+
+### 订单详情
+GET http://localhost:8082/order/1
+
+### 发货 - 待发货订单（应成功，状态变为待收货）
+POST http://localhost:8082/order/ship?orderId=1&operator=admin
+
+### 发货 - 待付款订单（应失败，非法状态流转）
+POST http://localhost:8082/order/ship?orderId=2&operator=admin
+
+### 发货 - 已发货订单再次发货（应失败，非法状态流转）
+POST http://localhost:8082/order/ship?orderId=5&operator=admin
+
+### 状态流转日志
+-- 需要在数据库控制台执行：
+-- SELECT * FROM tb_order_status_log;
+
+
+### ==================== 前台商品（C端）====================
+
+### 商品列表（默认排序）
+GET http://localhost:8082/front/products
+
+### 按类目筛选
+GET http://localhost:8082/front/products?categoryId=2
+
+### 按关键词搜索
+GET http://localhost:8082/front/products?keyword=iPhone
+
+### 按价格升序
+GET http://localhost:8082/front/products?sort=price_asc
+
+### 按价格降序
+GET http://localhost:8082/front/products?sort=price_desc
+
+### 商品详情
+GET http://localhost:8082/front/product/1
+
+### 类目列表
+GET http://localhost:8082/front/categories
+
+### ==================== 前台注册登录（复用后台接口）====================
+
+### 前台注册
+POST http://localhost:8082/employee/register
+Content-Type: application/json
+
+{
+  "shopName": "frontShop",
+  "username": "customer01",
+  "password": "123456"
+}
+
+### 前台登录
+POST http://localhost:8082/employee/login
+Content-Type: application/json
+
+{
+  "username": "customer01",
+  "password": "123456"
+}
+
+### ==================== 购物车 ====================
+
+### 加入购物车
+POST http://localhost:8082/cart/add
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productId": 1,
+  "quantity": 2
+}
+
+### 购物车列表
+GET http://localhost:8082/cart/list?userId=1
+
+### 删除购物车商品
+DELETE http://localhost:8082/cart/remove?cartId=1&userId=1
+
+### ==================== 下单支付（策略模式 + 状态模式）====================
+
+### 创建订单（支付宝支付）
+POST http://localhost:8082/pay/createOrder
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "shopId": 1,
+  "receiverName": "张三",
+  "receiverPhone": "13800000000",
+  "receiverAddress": "北京市海淀区",
+  "payType": "alipay",
+  "remark": "请尽快发货",
+  "items": [
+    {"productId": 1, "quantity": 1},
+    {"productId": 2, "quantity": 2}
+  ]
+}
+
+### 创建订单（微信支付）
+POST http://localhost:8082/pay/createOrder
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "shopId": 1,
+  "receiverName": "李四",
+  "receiverPhone": "13900000000",
+  "receiverAddress": "上海市浦东新区",
+  "payType": "wechat",
+  "items": [
+    {"productId": 3, "quantity": 1}
+  ]
+}
+
+### 支付订单（支付宝 - 应成功，待付款→待发货）
+POST http://localhost:8082/pay/pay?orderId=6
+
+### 重复支付同一个订单（应失败）
+POST http://localhost:8082/pay/pay?orderId=6
+
+### 查看订单状态
+GET http://localhost:8082/order/list
+
+### 查看订单商品明细（数据库控制台执行）
+-- SELECT * FROM tb_order_item;
+
+### 查看状态流转日志（数据库控制台执行）
+-- SELECT * FROM tb_order_status_log;

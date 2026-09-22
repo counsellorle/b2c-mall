@@ -1,0 +1,15 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 47.100.22.158:8848
+        namespace: zhuduole
+      config:
+        server-addr: 47.100.22.158:8848
+        namespace: zhuduole
+        file-extension: yaml

@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: shop-server
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 47.100.22.158:8848
+        namespace: zhuduole
+        fail-fast: false
+      config:
+        server-addr: 47.100.22.158:8848
+        namespace: zhuduole
+        file-extension: yaml
+        # 如果不想被远程配置覆盖，加上这一行：
+        # enabled: false
