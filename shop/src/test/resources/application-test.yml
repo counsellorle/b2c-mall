@@ -1,0 +1,22 @@
+# 集成测试专用配置。使用方式：@SpringBootTest @ActiveProfiles("test")
+#
+# 关闭 Nacos（见 bootstrap-test.yml）、把数据源指向 target 下的临时库，
+# 避免测试污染生产 shop.db，也避免依赖外部 Redis / Nacos。
+# 需要真实落库的任务项（如 3.2.1 复现缺陷 B1）建议直接用
+# support/InMemorySqlite 手工组装链路，比启动整个 Spring 上下文更快更稳。
+
+server:
+  port: 0
+
+spring:
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:target/test-shop.db?foreign_keys=on
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-test.sql
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
