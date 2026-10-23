@@ -39,11 +39,19 @@ public final class SqliteMapperSupport {
      * 否则 MyBatis 会把连接切到手动提交模式，插入结果读不到。
      */
     public static SqlSessionFactory factory(Connection keepAliveConnection) {
+        return factory(keepAliveConnection, EmployeeMapper.class, LoginLogMapper.class);
+    }
+
+    /** 允许测试注册任意 Mapper（如 P2 商品管理的 ProductMapper）复用同一内存库基座。 */
+    public static SqlSessionFactory factory(Connection keepAliveConnection, Class<?>... mappers) {
         DataSource dataSource = new SingleConnectionDataSource(keepAliveConnection);
         Environment environment = new Environment("sqlite-test", new JdbcTransactionFactory(), dataSource);
         Configuration configuration = new Configuration(environment);
-        configuration.addMapper(EmployeeMapper.class);
-        configuration.addMapper(LoginLogMapper.class);
+        // 与生产 application.yml 的 mybatis.configuration.map-underscore-to-camel-case 保持一致
+        configuration.setMapUnderscoreToCamelCase(true);
+        for (Class<?> mapper : mappers) {
+            configuration.addMapper(mapper);
+        }
         return new SqlSessionFactoryBuilder().build(configuration);
     }
 
