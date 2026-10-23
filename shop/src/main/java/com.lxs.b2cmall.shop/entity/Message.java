@@ -12,5 +12,6 @@ public class Message {
     private Integer msgType;
     private Integer isRead;
     private String readTime;
+    private String orderNo;   // 关联订单编号，供前端跳转订单详情
     private String createdAt;
 }

@@ -17,6 +17,8 @@ public class Order {
     private String receiverAddress;
     private String shippingStatus;
     private String afterSaleStatus;
+    private Integer isDeleted;      // 逻辑删除：0 正常，1 已删除（C 端删除仅隐藏）
+    private String deliveryType;    // 物流类型：普通快递/同城配送等
     private String createTime;
     private String payTime;
     private String shipTime;

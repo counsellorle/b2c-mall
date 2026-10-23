@@ -20,9 +20,14 @@ public interface ProductMapper {
     @Update("UPDATE tb_product SET status = #{status}, update_time = #{updateTime} WHERE id = #{id}")
     void updateStatus(@Param("id") Integer id, @Param("status") String status, @Param("updateTime") String updateTime);
 
+    @Select("SELECT COUNT(*) FROM tb_product " +
+            "WHERE status = 'on_sale' AND COALESCE(warehouse_stock, stock, 0) < COALESCE(stock_warn, 0)")
+    long countStockWarn();
+
     @Select("<script>" +
             "SELECT id, shop_id, name, keyword, selling_point, category_id, shop_category_id, " +
             "product_type, main_image, video, brand, price, market_price, stock, stock_warn, " +
+            "real_sales, fake_sales, warehouse_stock, store_stock, delivery_methods, product_category, " +
             "product_code, status, sort, compliance_info, create_time, update_time " +
             "FROM tb_product WHERE status = 'on_sale'" +
             "<if test='categoryId != null'> AND category_id = #{categoryId}</if>" +
@@ -30,7 +35,7 @@ public interface ProductMapper {
             "<choose>" +
             "  <when test='sort == \"price_asc\"'> ORDER BY price ASC</when>" +
             "  <when test='sort == \"price_desc\"'> ORDER BY price DESC</when>" +
-            "  <when test='sort == \"sales\"'> ORDER BY stock DESC</when>" +
+            "  <when test='sort == \"sales\"'> ORDER BY COALESCE(real_sales,0) + COALESCE(fake_sales,0) DESC</when>" +
             "  <otherwise> ORDER BY sort ASC, create_time DESC</otherwise>" +
             "</choose>" +
             "</script>")
@@ -54,6 +59,7 @@ public interface ProductMapper {
 
     @Select("SELECT id, shop_id, name, keyword, selling_point, category_id, shop_category_id, " +
             "product_type, main_image, video, brand, price, market_price, stock, stock_warn, " +
+            "real_sales, fake_sales, warehouse_stock, store_stock, delivery_methods, product_category, " +
             "product_code, status, sort, compliance_info, create_time, update_time " +
             "FROM tb_product WHERE id = #{id}")
     @Results({

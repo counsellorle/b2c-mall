@@ -19,6 +19,12 @@ public class Product {
     private Double marketPrice;
     private Integer stock;
     private Integer stockWarn;
+    private Integer realSales;       // 真实成交销量
+    private Integer fakeSales;       // 注水销量（虚拟销量，商家可配置）
+    private Integer warehouseStock;  // 仓库（中心仓）库存
+    private Integer storeStock;      // 门店可售库存
+    private String deliveryMethods;  // 支持的配送方式，逗号分隔：同城配送,用户自提,快递配送
+    private String productCategory;  // 商品类别：实物商品/虚拟商品/卡券
     private String productCode;
     private String status;
     private Integer sort;

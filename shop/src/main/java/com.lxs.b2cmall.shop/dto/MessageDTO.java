@@ -9,5 +9,6 @@ public class MessageDTO {
     private String content;
     private Integer msgType;
     private Integer isRead;
+    private String orderNo;   // 关联订单编号，点击消息跳转订单详情
     private String createdAt;
 }

@@ -36,3 +36,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### 本地数据库备份 ###
+*.db.bak-*
+
+### IDEA 本地 VCS 配置 ###
+.idea/vcs.xml
