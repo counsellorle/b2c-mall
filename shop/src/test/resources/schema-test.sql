@@ -132,3 +132,14 @@ CREATE TABLE IF NOT EXISTS tb_order_item (
     quantity      INTEGER,
     subtotal      REAL
 );
+
+-- 订单状态流转日志（P3 订单详情/退款金额统计依赖）
+CREATE TABLE IF NOT EXISTS tb_order_status_log (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id    INTEGER,
+    from_status TEXT,
+    to_status   TEXT,
+    operator    TEXT,
+    remark      TEXT,
+    create_time TEXT
+);

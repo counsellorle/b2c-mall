@@ -22,4 +22,6 @@ public class Order {
     private String createTime;
     private String payTime;
     private String shipTime;
+    /** 非表字段：联表 tb_shop 填充，供订单列表展示门店名 */
+    private String shopName;
 }
