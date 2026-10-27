@@ -21,6 +21,7 @@ public class Product {
     private Integer stockWarn;
     private Integer realSales;       // 真实成交销量
     private Integer fakeSales;       // 注水销量（虚拟销量，商家可配置）
+    private Integer sales;           // 对外展示销量 = 真实 + 注水（查询计算列，非表字段）
     private Integer warehouseStock;  // 仓库（中心仓）库存
     private Integer storeStock;      // 门店可售库存
     private String deliveryMethods;  // 支持的配送方式，逗号分隔：同城配送,用户自提,快递配送

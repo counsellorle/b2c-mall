@@ -58,16 +58,11 @@ public class FrontProductServiceImpl implements FrontProductService {
         if (cached != null) {
             return cached;
         }
-
-        // 直接用 findByCondition 不合适，新增一个按 id 查的方法
-        // 这里直接查数据库
-        List<Product> all = productMapper.findByCondition(null, null, "default");
-        for (Product p : all) {
-            if (p.getId().equals(id)) {
-                redisTemplate.opsForValue().set(cacheKey, p, 60, TimeUnit.SECONDS);
-                return p;
-            }
+        // 仅返回上架商品：下架/已删除的商品对外不可见（P4）
+        Product product = productMapper.findOnSaleById(id);
+        if (product != null) {
+            redisTemplate.opsForValue().set(cacheKey, product, 60, TimeUnit.SECONDS);
         }
-        return null;
+        return product;
     }
 }

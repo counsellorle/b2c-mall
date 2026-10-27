@@ -28,18 +28,23 @@ public interface ProductMapper {
             "WHERE status = 'on_sale' AND COALESCE(warehouse_stock, stock, 0) < COALESCE(stock_warn, 0)")
     long countStockWarn();
 
-    @Select("<script>" +
-            "SELECT id, shop_id, name, keyword, selling_point, category_id, shop_category_id, " +
+    // ==================== P4 C 端商品列表 ====================
+
+    /** C 端列清单：末尾追加对外展示销量（真实 + 注水）计算列 */
+    String FRONT_COLUMNS = "id, shop_id, name, keyword, selling_point, category_id, shop_category_id, " +
             "product_type, main_image, video, brand, price, market_price, stock, stock_warn, " +
             "real_sales, fake_sales, warehouse_stock, store_stock, delivery_methods, product_category, " +
-            "product_code, status, sort, compliance_info, create_time, update_time " +
-            "FROM tb_product WHERE status = 'on_sale'" +
+            "product_code, status, sort, compliance_info, create_time, update_time, " +
+            "(COALESCE(real_sales,0) + COALESCE(fake_sales,0)) AS sales";
+
+    @Select("<script>" +
+            "SELECT " + FRONT_COLUMNS + " FROM tb_product WHERE status = 'on_sale'" +
             "<if test='categoryId != null'> AND category_id = #{categoryId}</if>" +
             "<if test='keyword != null and keyword != \"\"'> AND (name LIKE '%' || #{keyword} || '%' OR keyword LIKE '%' || #{keyword} || '%')</if>" +
             "<choose>" +
             "  <when test='sort == \"price_asc\"'> ORDER BY price ASC</when>" +
             "  <when test='sort == \"price_desc\"'> ORDER BY price DESC</when>" +
-            "  <when test='sort == \"sales\"'> ORDER BY COALESCE(real_sales,0) + COALESCE(fake_sales,0) DESC</when>" +
+            "  <when test='sort == \"sales\"'> ORDER BY sales DESC</when>" +
             "  <otherwise> ORDER BY sort ASC, create_time DESC</otherwise>" +
             "</choose>" +
             "</script>")
@@ -55,11 +60,31 @@ public interface ProductMapper {
             @Result(property = "productCode", column = "product_code"),
             @Result(property = "complianceInfo", column = "compliance_info"),
             @Result(property = "createTime", column = "create_time"),
-            @Result(property = "updateTime", column = "update_time")
+            @Result(property = "updateTime", column = "update_time"),
+            @Result(property = "sales", column = "sales")
     })
     List<Product> findByCondition(@Param("categoryId") Integer categoryId,
                                   @Param("keyword") String keyword,
                                   @Param("sort") String sort);
+
+    /** C 端详情：仅返回上架商品（下架/删除的商品对外不可见） */
+    @Select("SELECT " + FRONT_COLUMNS + " FROM tb_product WHERE id = #{id} AND status = 'on_sale'")
+    @Results({
+            @Result(property = "shopId", column = "shop_id"),
+            @Result(property = "sellingPoint", column = "selling_point"),
+            @Result(property = "categoryId", column = "category_id"),
+            @Result(property = "shopCategoryId", column = "shop_category_id"),
+            @Result(property = "productType", column = "product_type"),
+            @Result(property = "mainImage", column = "main_image"),
+            @Result(property = "marketPrice", column = "market_price"),
+            @Result(property = "stockWarn", column = "stock_warn"),
+            @Result(property = "productCode", column = "product_code"),
+            @Result(property = "complianceInfo", column = "compliance_info"),
+            @Result(property = "createTime", column = "create_time"),
+            @Result(property = "updateTime", column = "update_time"),
+            @Result(property = "sales", column = "sales")
+    })
+    Product findOnSaleById(@Param("id") Integer id);
 
     @Select("SELECT id, shop_id, name, keyword, selling_point, category_id, shop_category_id, " +
             "product_type, main_image, video, brand, price, market_price, stock, stock_warn, " +
