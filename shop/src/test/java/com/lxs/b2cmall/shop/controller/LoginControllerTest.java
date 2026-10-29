@@ -2,7 +2,9 @@ package com.lxs.b2cmall.shop.controller;
 
 import com.lxs.b2cmall.shop.dto.LoginDTO;
 import com.lxs.b2cmall.shop.entity.Employee;
+import com.lxs.b2cmall.shop.service.EmployeeAuthService;
 import com.lxs.b2cmall.shop.service.EmployeeService;
+import com.lxs.b2cmall.shop.vo.EmployeeLoginVO;
 import com.lxs.b2cmall.shop.support.LoginFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -41,6 +43,9 @@ class LoginControllerTest {
     @Mock
     private EmployeeService employeeService;
 
+    @Mock
+    private EmployeeAuthService employeeAuthService;
+
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -48,14 +53,20 @@ class LoginControllerTest {
         MockitoAnnotations.openMocks(this);
         LoginController controller = new LoginController();
         LoginFixtures.inject(controller, "employeeService", employeeService);
+        LoginFixtures.inject(controller, "employeeAuthService", employeeAuthService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
-    /** 造一个"登录成功后返回"的员工（密码已清空）。 */
-    private Employee loggedInEmployee() {
-        Employee employee = LoginFixtures.employee(1, "shop01", null, 1);
-        employee.setPassword(null);
-        return employee;
+    /** 造一个"登录成功后返回"的登录结果（含 token 与店铺信息）。 */
+    private EmployeeLoginVO loggedInVO() {
+        EmployeeLoginVO vo = new EmployeeLoginVO();
+        vo.setToken("token-abc");
+        vo.setEmployeeId(1);
+        vo.setShopId(1);
+        vo.setUsername("shop01");
+        vo.setShopName("testShop");
+        vo.setExpiresIn(28800L);
+        return vo;
     }
 
     // ==================== 正常登录 ====================
@@ -63,8 +74,8 @@ class LoginControllerTest {
     @Test
     @DisplayName("登录成功 → 返回 code=200 和用户信息")
     void loginReturnsSuccessResult() throws Exception {
-        when(employeeService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
-                .thenReturn(loggedInEmployee());
+        when(employeeAuthService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
+                .thenReturn(loggedInVO());
 
         mockMvc.perform(post("/employee/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -73,7 +84,7 @@ class LoginControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("success"))
                 .andExpect(jsonPath("$.data.username").value("shop01"))
-                .andExpect(jsonPath("$.data.id").value(1));
+                .andExpect(jsonPath("$.data.employeeId").value(1));
     }
 
     // ==================== 登录失败 ====================
@@ -81,7 +92,7 @@ class LoginControllerTest {
     @Test
     @DisplayName("密码错误 → 返回 code=500，message 为「密码错误」")
     void wrongPasswordReturnsErrorResult() throws Exception {
-        when(employeeService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
+        when(employeeAuthService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
                 .thenThrow(new RuntimeException("密码错误"));
 
         mockMvc.perform(post("/employee/login")
@@ -95,7 +106,7 @@ class LoginControllerTest {
     @Test
     @DisplayName("账号不存在 → 返回 code=500，message 为「账号不存在」")
     void accountNotFoundReturnsErrorResult() throws Exception {
-        when(employeeService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
+        when(employeeAuthService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
                 .thenThrow(new RuntimeException("账号不存在"));
 
         mockMvc.perform(post("/employee/login")
@@ -109,7 +120,7 @@ class LoginControllerTest {
     @Test
     @DisplayName("登录失败 → 错误信息里不能出现 SQL 语句、异常类名、密码密文")
     void errorMessageHasNoInternalDetail() throws Exception {
-        when(employeeService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
+        when(employeeAuthService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
                 .thenThrow(new RuntimeException("密码错误"));
 
         mockMvc.perform(post("/employee/login")
@@ -140,8 +151,8 @@ class LoginControllerTest {
             + "是否允许回显这个键要先定契约")
     @DisplayName("【红灯】登录成功的返回体里不应该出现 password 键")
     void responseMustNotCarryPassword() throws Exception {
-        when(employeeService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
-                .thenReturn(loggedInEmployee());
+        when(employeeAuthService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
+                .thenReturn(loggedInVO());
 
         mockMvc.perform(post("/employee/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -153,7 +164,7 @@ class LoginControllerTest {
     @Disabled("待修复缺陷 B5：当前失败时 HTTP 恒 200、业务码恒 500，无法区分三类失败")
     @DisplayName("【红灯】三种失败应该能用不同的错误码区分开")
     void failureCodesAreDistinguishable() throws Exception {
-        when(employeeService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
+        when(employeeAuthService.login(any(LoginDTO.class), any(HttpServletRequest.class)))
                 .thenThrow(new RuntimeException("密码错误"));
 
         mockMvc.perform(post("/employee/login")

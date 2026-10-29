@@ -116,7 +116,8 @@ public interface ProductMapper {
             "real_sales, fake_sales, warehouse_stock, store_stock, delivery_methods, product_category, " +
             "product_code, status, sort, compliance_info, create_time, update_time";
 
-    String QUERY_CONDITION = "<if test='q.name != null and q.name != \"\"'> AND name LIKE '%' || #{q.name} || '%'</if>" +
+    String QUERY_CONDITION = "<if test='q.shopId != null'> AND shop_id = #{q.shopId}</if>" +
+            "<if test='q.name != null and q.name != \"\"'> AND name LIKE '%' || #{q.name} || '%'</if>" +
             "<if test='q.productType != null and q.productType != \"\"'> AND product_type = #{q.productType}</if>" +
             "<if test='q.productCategory != null and q.productCategory != \"\"'> AND product_category = #{q.productCategory}</if>" +
             "<if test='q.status != null and q.status != \"\"'> AND status = #{q.status}</if>" +

@@ -21,6 +21,11 @@ public class ProductQueryDTO {
     private List<String> deliveryMethods;
     /** 商品分类（类目 id） */
     private Integer categoryId;
+    /**
+     * 店铺 id：由服务端从登录态（网关注入的 X-Shop-Id）填充，用于店铺间数据隔离。
+     * 为空时不做店铺过滤（本地直连调试兼容）。
+     */
+    private Integer shopId;
 
     /** 页码，从 1 开始 */
     private Integer page = 1;

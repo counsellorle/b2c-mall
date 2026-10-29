@@ -8,7 +8,9 @@ import java.util.List;
 
 @Data
 public class OrderCreateDTO {
-    @NotNull(message = "用户ID不能为空")
+    /**
+     * 用户 ID：由服务端从登录态（网关注入的 X-User-Id / token）填充，前端传值会被覆盖。
+     */
     private Integer userId;
 
     @NotNull(message = "店铺ID不能为空")

@@ -12,4 +12,7 @@ public interface ShopMapper {
             "#{status}, #{createdAt}, #{updatedAt})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void insert(Shop shop);
+
+    @Select("SELECT id, shop_name, logo_url, status FROM tb_shop WHERE id = #{id}")
+    Shop findById(@Param("id") Integer id);
 }

@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: gateway
+  redis:
+    host: 47.100.22.158
+    port: 6379
+    database: 0
+    timeout: 5000
   cloud:
     nacos:
       discovery:
@@ -13,3 +18,46 @@ spring:
         server-addr: 47.100.22.158:8848
         namespace: zhuduole
         file-extension: yaml
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        # 统一入口：前端只需把 baseURL 指向 8081，接口路径保持不变
+        - id: shop-server
+          uri: lb://shop-server
+          predicates:
+            - Path=/employee/**,/dashboard/**,/product/**,/order/**,/front/**,/cart/**,/pay/**,/user/**
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+b2c:
+  auth:
+    # 免登录白名单（Ant 风格）
+    whitelist:
+      - /employee/login
+      - /employee/register
+      - /user/login
+      - /user/register
+      - /front/products
+      - /front/categories
+      - /front/product/**
+      - /actuator/**
+    # B 端路径：校验员工会话，注入 X-Shop-Id / X-Employee-Id
+    backend-prefixes:
+      - /employee/
+      - /dashboard/
+      - /product/
+      - /order/
+    # C 端路径：校验用户会话，注入 X-User-Id
+    frontend-prefixes:
+      - /user/
+      - /front/order/
+      - /cart/
+      - /pay/

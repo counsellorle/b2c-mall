@@ -8,14 +8,15 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * 从请求中解析当前登录的 C 端用户。
  * <p>
- * 支持两种携带方式：{@code Authorization: Bearer {token}} 与 {@code X-User-Token: {token}}。
- * P5 阶段在 shop 服务内校验；P6 接入网关后由网关统一校验并注入用户身份，此处逻辑可直接复用。
+ * 优先读取网关注入的 {@code X-User-Id}（P6 起，token 已在网关校验过，无需再查 Redis）；
+ * 直连 shop-server 调试时回退为校验 {@code Authorization: Bearer {token}} 或 {@code X-User-Token}。
  */
 @Component
 public class CurrentUser {
 
     public static final String HEADER_AUTH = "Authorization";
     public static final String HEADER_TOKEN = "X-User-Token";
+    public static final String HEADER_USER_ID = "X-User-Id";
     private static final String BEARER = "bearer ";
 
     @Autowired
@@ -23,6 +24,10 @@ public class CurrentUser {
 
     /** 取当前用户 id，未登录/已过期直接抛异常，由 Controller 统一转为业务错误 */
     public Integer requireUserId(HttpServletRequest request) {
+        Integer injected = userId(request);
+        if (injected != null) {
+            return injected;
+        }
         String token = token(request);
         if (token == null || token.isEmpty()) {
             throw new RuntimeException("请先登录");
@@ -32,6 +37,22 @@ public class CurrentUser {
             throw new RuntimeException("登录已过期，请重新登录");
         }
         return userId;
+    }
+
+    /** 取网关注入的用户 id，无则返回 null */
+    public Integer userId(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        String value = request.getHeader(HEADER_USER_ID);
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.valueOf(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /** 提取请求中的 token（无则返回 null） */

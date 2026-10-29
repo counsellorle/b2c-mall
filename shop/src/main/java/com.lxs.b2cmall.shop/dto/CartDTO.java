@@ -6,7 +6,10 @@ import javax.validation.constraints.Positive;
 
 @Data
 public class CartDTO {
-    @NotNull(message = "用户ID不能为空")
+    /**
+     * 用户 ID：由服务端从登录态（网关注入的 X-User-Id / token）填充，
+     * 前端传入的值会被覆盖，因此不再作为必填校验项。
+     */
     private Integer userId;
 
     @NotNull(message = "商品ID不能为空")

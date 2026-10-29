@@ -42,6 +42,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <!-- 登录态校验：读 Redis 中的 C 端 / B 端 token 会话（响应式客户端，适配 WebFlux） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+            <version>${spring-boot.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
