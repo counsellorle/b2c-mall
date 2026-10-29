@@ -197,4 +197,73 @@ public interface OrderMapper {
             " WHERE id = #{id}</script>")
     int updateShip(@Param("id") Integer id, @Param("status") String status,
                    @Param("shipTime") String shipTime, @Param("deliveryType") String deliveryType);
+
+    // ==================== P5 C 端订单管理 ====================
+
+    /** C 端只可见自己的订单，逻辑删除后对用户不可见；支持状态 Tab 与订单号模糊查询 */
+    String USER_ORDER_CONDITION = " WHERE o.user_id = #{userId} AND COALESCE(o.is_deleted, 0) = 0" +
+            "<if test='status != null and status != \"\"'> AND o.status = #{status}</if>" +
+            "<if test='keyword != null and keyword != \"\"'> AND o.order_no LIKE '%' || #{keyword} || '%'</if>";
+
+    @Select("<script>SELECT COUNT(*) FROM tb_order o" + USER_ORDER_CONDITION + "</script>")
+    long countByUser(@Param("userId") Integer userId, @Param("status") String status,
+                     @Param("keyword") String keyword);
+
+    @Select("<script>SELECT " + ORDER_COLUMNS + " FROM tb_order o LEFT JOIN tb_shop s ON s.id = o.shop_id" +
+            USER_ORDER_CONDITION +
+            " ORDER BY o.create_time DESC, o.id DESC LIMIT #{limit} OFFSET #{offset}</script>")
+    @Results({
+            @Result(property = "orderNo", column = "order_no"),
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "shopId", column = "shop_id"),
+            @Result(property = "totalAmount", column = "total_amount"),
+            @Result(property = "payAmount", column = "pay_amount"),
+            @Result(property = "payType", column = "pay_type"),
+            @Result(property = "receiverName", column = "receiver_name"),
+            @Result(property = "receiverPhone", column = "receiver_phone"),
+            @Result(property = "receiverAddress", column = "receiver_address"),
+            @Result(property = "shippingStatus", column = "shipping_status"),
+            @Result(property = "afterSaleStatus", column = "after_sale_status"),
+            @Result(property = "isDeleted", column = "is_deleted"),
+            @Result(property = "deliveryType", column = "delivery_type"),
+            @Result(property = "createTime", column = "create_time"),
+            @Result(property = "payTime", column = "pay_time"),
+            @Result(property = "shipTime", column = "ship_time"),
+            @Result(property = "shopName", column = "shop_name")
+    })
+    List<Order> selectPageByUser(@Param("userId") Integer userId, @Param("status") String status,
+                                 @Param("keyword") String keyword,
+                                 @Param("limit") int limit, @Param("offset") int offset);
+
+    @Select("SELECT status, COUNT(*) AS cnt FROM tb_order " +
+            "WHERE user_id = #{userId} AND COALESCE(is_deleted, 0) = 0 GROUP BY status")
+    List<StatusCountVO> countGroupByStatusForUser(@Param("userId") Integer userId);
+
+    @Select("SELECT " + ORDER_COLUMNS + " FROM tb_order o LEFT JOIN tb_shop s ON s.id = o.shop_id" +
+            " WHERE o.id = #{id} AND o.user_id = #{userId} AND COALESCE(o.is_deleted, 0) = 0")
+    @Results({
+            @Result(property = "orderNo", column = "order_no"),
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "shopId", column = "shop_id"),
+            @Result(property = "totalAmount", column = "total_amount"),
+            @Result(property = "payAmount", column = "pay_amount"),
+            @Result(property = "payType", column = "pay_type"),
+            @Result(property = "receiverName", column = "receiver_name"),
+            @Result(property = "receiverPhone", column = "receiver_phone"),
+            @Result(property = "receiverAddress", column = "receiver_address"),
+            @Result(property = "shippingStatus", column = "shipping_status"),
+            @Result(property = "afterSaleStatus", column = "after_sale_status"),
+            @Result(property = "isDeleted", column = "is_deleted"),
+            @Result(property = "deliveryType", column = "delivery_type"),
+            @Result(property = "createTime", column = "create_time"),
+            @Result(property = "payTime", column = "pay_time"),
+            @Result(property = "shipTime", column = "ship_time"),
+            @Result(property = "shopName", column = "shop_name")
+    })
+    Order findByIdForUser(@Param("id") Integer id, @Param("userId") Integer userId);
+
+    /** 逻辑删除：仅影响属于该用户且未删除的订单，返回影响行数用于归属校验 */
+    @Update("UPDATE tb_order SET is_deleted = 1 " +
+            "WHERE id = #{id} AND user_id = #{userId} AND COALESCE(is_deleted, 0) = 0")
+    int logicalDelete(@Param("id") Integer id, @Param("userId") Integer userId);
 }

@@ -143,3 +143,12 @@ CREATE TABLE IF NOT EXISTS tb_order_status_log (
     remark      TEXT,
     create_time TEXT
 );
+
+-- 购物车（P5 复购依赖；与生产库 shop.db 一致）
+CREATE TABLE IF NOT EXISTS tb_cart (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER NOT NULL,
+    product_id  INTEGER NOT NULL,
+    quantity    INTEGER DEFAULT 1,
+    create_time TEXT
+);
