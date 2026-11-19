@@ -41,7 +41,7 @@
 | `shop` 内部分层 | Controller → Service(接口 + impl) → MyBatis **注解式** Mapper → Entity / DTO / VO |
 | 横切机制 | Spring 事件 + 观察者模式：`LoginEvent` → `AuditLogObserver`（写审计日志）、`UserStatusObserver`（更新登录统计） |
 | 持久化 | SQLite，`jdbc:sqlite:F:/ssd/b2c_mall/shop/shop.db?foreign_keys=on`（**`foreign_keys=on` 是打开的**，约束会真实生效） |
-| 缓存 | Redis（阿里云 `47.100.22.158:6379`），`RedisConfig` 已定义 `RedisTemplate` Bean，但**全项目零引用** |
+| 缓存 | Redis（地址由 `REDIS_HOST:REDIS_PORT` 配置，本地默认 `localhost:6379`），`RedisConfig` 已定义 `RedisTemplate` Bean，但**全项目零引用** |
 | 配置来源 | `bootstrap.yml` + `application.yml`，另有 Nacos 远程配置（`namespace: zhudole`）可能覆盖本地 |
 | View 层 | **不存在**。纯 REST 后端，因此「View 层上下文」的等价物是 **DTO 参数校验边界 + 响应契约** |
 | 网关自定义逻辑 | `GatewayApplication` 仅有 `@EnableDiscoveryClient`，**无任何自定义 Filter**；路由规则疑似由 Nacos 远程配置下发 |

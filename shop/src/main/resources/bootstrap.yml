@@ -4,12 +4,14 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
-        namespace: ${NACOS_NAMESPACE:zhuduole}
+        # 地址由环境变量注入；默认值仅指向本地，不含任何外部服务器地址
+        # 部署时参见 .env.example，容器内由 docker-compose 注入服务名
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
         fail-fast: false
       config:
-        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
-        namespace: ${NACOS_NAMESPACE:zhuduole}
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
         file-extension: yaml
         # 如果不想被远程配置覆盖，加上这一行：
         # enabled: false

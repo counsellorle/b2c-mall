@@ -21,6 +21,8 @@
 ```
 b2c_mall/
 ├── docker-compose.yml          # 整站编排（mysql/redis/nacos/nginx/gateway/shop）
+├── .env.example                # 环境变量模板（可提交，只含占位符）
+├── .env                        # 真实敏感值（已被 .gitignore 忽略，切勿提交）
 ├── .dockerignore
 ├── nginx/
 │   └── nginx.conf              # Nginx 反向代理到网关
@@ -33,6 +35,25 @@ b2c_mall/
     ├── build-images.sh         # 虚拟机内：构建两个业务镜像
     └── deploy.sh               # 虚拟机内：一键构建 + 启动全部容器
 ```
+
+### 敏感配置（密码 / 地址 / namespace）
+
+所有敏感值都从 `.env` 读取，**不再硬编码在任何被提交的文件里**：
+
+```bash
+cp .env.example .env       # 首次部署：从模板生成
+vi .env                    # 修改 MYSQL_ROOT_PASSWORD 等真实值
+```
+
+| 变量 | 用途 | 模板默认值 |
+|------|------|-----------|
+| `MYSQL_ROOT_PASSWORD` | MySQL root 密码（必填，未设置 compose 会报错） | `change_me_please` |
+| `MYSQL_DATABASE` | 初始化数据库名 | `b2c_mall` |
+| `NACOS_ADDR` | Nacos 地址，容器内部署用 `nacos:8848` | `nacos:8848` |
+| `NACOS_NAMESPACE` | 命名空间 ID，public 留空 | 空 |
+| `REDIS_HOST` / `REDIS_PORT` | Redis 地址，容器内部署用服务名 `redis` | `redis` / `6379` |
+
+> `.env.example` 只放占位符和安全默认值，可以提交；`.env` 含真实密码，`git status` 里不会出现，也**不会**被打包进镜像。Java 配置（`application.yml` / `bootstrap.yml`）的默认值已改为 `localhost`，仅作本地占位，实际值由 compose 通过环境变量注入。
 
 ---
 
@@ -111,7 +132,7 @@ Nacos 控制台 `http://<虚拟机IP>:8848/nacos`（默认账号密码 nacos/nac
 4. **Maven 构建拉不到依赖**：`setup-centos7.sh` 已配镜像加速；Dockerfile 里用 `dependency:go-offline || true` 容错。若仍失败，可在有网环境先 `mvn package` 打包，改用「只 COPY jar」的简化 Dockerfile。
 2. **Nacos 起不来**：确认内存 ≥4GB（VM 已配 4GB）；首次启动约需 1-2 分钟，healthcheck 设了 15 次重试。
 3. **Shop 连不上数据库**：镜像内已内置 `shop.db` 到 `/data/shop.db`，并通过启动参数覆盖 JDBC URL，不依赖宿主机路径。
-4. **namespace 不一致**：本地 Nacos 使用 public（空 namespace ID），已通过 `NACOS_NAMESPACE: ""` 覆盖；原代码默认的 `zhuduole` 用于连接外部 Nacos（47.100.22.158）。
+4. **namespace 不一致**：本地 Nacos 使用 public（空 namespace ID），通过 `.env` 中的 `NACOS_NAMESPACE=`（空值）覆盖；若要连接外部 Nacos，在 `.env` 里填对应 namespace ID 即可。
 5. **端口冲突**：如宿主机 80/3306/6379/8848/8081/8082 被占用，改 `docker-compose.yml` 里 `ports` 左侧端口。
 
 ---

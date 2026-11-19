@@ -48,8 +48,11 @@ b2c_mall/
 
 - JDK 8+
 - Maven 3.6+
-- Nacos Server（运行在 `47.100.22.158:8848`，namespace: `zhuduole`）
-- Redis（运行在 `47.100.22.158:6379`）
+- Nacos Server（地址由环境变量 `NACOS_ADDR` 提供，本地默认 `localhost:8848`）
+- Redis（地址由环境变量 `REDIS_HOST` / `REDIS_PORT` 提供，本地默认 `localhost:6379`）
+
+> 地址、密码、namespace 等配置不硬编码在仓库中。本地开发可直接用 `docker compose`（见 `DOCKER-DEPLOY.md`），
+> 或复制 `.env.example` 为 `.env` 后按需填写；容器内由 `docker-compose.yml` 注入服务名。
 
 ### 启动步骤
 

@@ -13,7 +13,8 @@ services:
     container_name: b2c-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      # 密码仅从 .env 读取，不再硬编码；未配置时 compose 会直接报错
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env 中设置 MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-b2c_mall}
       TZ: Asia/Shanghai
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -76,11 +77,12 @@ services:
     container_name: b2c-shop
     restart: unless-stopped
     environment:
-      NACOS_ADDR: nacos:8848
+      # 地址/命名空间从 .env 读取，默认指向 compose 内的服务
+      NACOS_ADDR: ${NACOS_ADDR:-nacos:8848}
       # Nacos 1.4.7 的 public 命名空间 ID 为空字符串
-      NACOS_NAMESPACE: ""
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      NACOS_NAMESPACE: ${NACOS_NAMESPACE:-}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
       SPRING_CLOUD_NACOS_CONFIG_ENABLED: "false"
       TZ: Asia/Shanghai
     ports:
@@ -102,11 +104,12 @@ services:
     container_name: b2c-gateway
     restart: unless-stopped
     environment:
-      NACOS_ADDR: nacos:8848
+      # 地址/命名空间从 .env 读取，默认指向 compose 内的服务
+      NACOS_ADDR: ${NACOS_ADDR:-nacos:8848}
       # Nacos 1.4.7 的 public 命名空间 ID 为空字符串
-      NACOS_NAMESPACE: ""
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      NACOS_NAMESPACE: ${NACOS_NAMESPACE:-}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
       SPRING_CLOUD_NACOS_CONFIG_ENABLED: "false"
       TZ: Asia/Shanghai
     ports:

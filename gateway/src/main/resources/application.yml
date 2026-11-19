@@ -5,18 +5,20 @@ spring:
   application:
     name: gateway
   redis:
-    host: ${REDIS_HOST:47.100.22.158}
+    # 地址由环境变量注入；默认值仅指向本地，不含任何外部服务器地址
+    # 部署时参见 .env.example，容器内由 docker-compose 注入服务名
+    host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}
     database: 0
     timeout: 5000
   cloud:
     nacos:
       discovery:
-        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
-        namespace: ${NACOS_NAMESPACE:zhuduole}
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
       config:
-        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
-        namespace: ${NACOS_NAMESPACE:zhuduole}
+        server-addr: ${NACOS_ADDR:localhost:8848}
+        namespace: ${NACOS_NAMESPACE:}
         file-extension: yaml
     gateway:
       discovery:
