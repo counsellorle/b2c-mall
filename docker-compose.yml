@@ -1,0 +1,144 @@
+# ============================================================
+# B2C 商城 docker-compose 编排
+# 服务：mysql / redis / nacos / nginx / gateway / shop
+# 业务镜像命名规则：2505273112<模块名>service:1.0
+#   gateway -> 2505273112gatewayservice:1.0
+#   shop    -> 2505273112shopservice:1.0
+# ============================================================
+
+services:
+  # ---------------- MySQL ----------------
+  mysql:
+    image: mysql:5.7
+    container_name: b2c-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-b2c_mall}
+      TZ: Asia/Shanghai
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - b2c-net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- Redis ----------------
+  # 应用（登录态、购物车会话等）依赖 Redis，必须启动
+  redis:
+    image: redis:7-alpine
+    container_name: b2c-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - b2c-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- Nacos ----------------
+  nacos:
+    image: nacos/nacos-server:v1.4.7
+    container_name: b2c-nacos
+    restart: unless-stopped
+    environment:
+      MODE: standalone
+      PREFER_HOST_MODE: hostname
+      TZ: Asia/Shanghai
+    ports:
+      - "8848:8848"
+    networks:
+      - b2c-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 15
+
+  # ---------------- 业务服务 shop ----------------
+  shop:
+    image: 2505273112shopservice:1.0
+    build:
+      context: .
+      dockerfile: shop/Dockerfile
+    container_name: b2c-shop
+    restart: unless-stopped
+    environment:
+      NACOS_ADDR: nacos:8848
+      # Nacos 1.4.7 的 public 命名空间 ID 为空字符串
+      NACOS_NAMESPACE: ""
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SPRING_CLOUD_NACOS_CONFIG_ENABLED: "false"
+      TZ: Asia/Shanghai
+    ports:
+      - "8082:8082"
+    depends_on:
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - b2c-net
+
+  # ---------------- 网关 gateway ----------------
+  gateway:
+    image: 2505273112gatewayservice:1.0
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    container_name: b2c-gateway
+    restart: unless-stopped
+    environment:
+      NACOS_ADDR: nacos:8848
+      # Nacos 1.4.7 的 public 命名空间 ID 为空字符串
+      NACOS_NAMESPACE: ""
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SPRING_CLOUD_NACOS_CONFIG_ENABLED: "false"
+      TZ: Asia/Shanghai
+    ports:
+      - "8081:8081"
+    depends_on:
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      shop:
+        condition: service_started
+    networks:
+      - b2c-net
+
+  # ---------------- Nginx ----------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: b2c-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - gateway
+    networks:
+      - b2c-net
+
+volumes:
+  mysql-data:
+  redis-data:
+
+networks:
+  b2c-net:
+    driver: bridge

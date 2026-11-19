@@ -4,12 +4,12 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 47.100.22.158:8848
-        namespace: zhuduole
+        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
+        namespace: ${NACOS_NAMESPACE:zhuduole}
         fail-fast: false
       config:
-        server-addr: 47.100.22.158:8848
-        namespace: zhuduole
+        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
+        namespace: ${NACOS_NAMESPACE:zhuduole}
         file-extension: yaml
         # 如果不想被远程配置覆盖，加上这一行：
         # enabled: false

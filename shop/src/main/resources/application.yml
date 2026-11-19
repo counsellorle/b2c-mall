@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: ${SERVER_PORT:8082}
 
 spring:
   application:
@@ -11,18 +11,18 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 47.100.22.158:8848
-        namespace: zhuduole
+        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
+        namespace: ${NACOS_NAMESPACE:zhuduole}
       config:
-        server-addr: 47.100.22.158:8848
-        namespace: zhuduole
+        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
+        namespace: ${NACOS_NAMESPACE:zhuduole}
         file-extension: yaml
   datasource:
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite:F:/ssd/b2c_mall/shop/shop.db?foreign_keys=on
+    url: ${SPRING_DATASOURCE_URL:jdbc:sqlite:./shop.db?foreign_keys=on}
   redis:
-    host: 47.100.22.158
-    port: 6379
+    host: ${REDIS_HOST:47.100.22.158}
+    port: ${REDIS_PORT:6379}
     database: 0
     timeout: 5000
 

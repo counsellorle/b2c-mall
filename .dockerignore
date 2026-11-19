@@ -1,0 +1,9 @@
+.git
+.idea
+.tdd
+docs
+target
+**/target
+*.md
+*.iml
+.DS_Store

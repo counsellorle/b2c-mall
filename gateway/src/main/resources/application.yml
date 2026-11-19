@@ -1,22 +1,22 @@
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
 
 spring:
   application:
     name: gateway
   redis:
-    host: 47.100.22.158
-    port: 6379
+    host: ${REDIS_HOST:47.100.22.158}
+    port: ${REDIS_PORT:6379}
     database: 0
     timeout: 5000
   cloud:
     nacos:
       discovery:
-        server-addr: 47.100.22.158:8848
-        namespace: zhuduole
+        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
+        namespace: ${NACOS_NAMESPACE:zhuduole}
       config:
-        server-addr: 47.100.22.158:8848
-        namespace: zhuduole
+        server-addr: ${NACOS_ADDR:47.100.22.158:8848}
+        namespace: ${NACOS_NAMESPACE:zhuduole}
         file-extension: yaml
     gateway:
       discovery:
